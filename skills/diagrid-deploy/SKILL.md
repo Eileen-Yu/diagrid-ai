@@ -96,6 +96,27 @@ traffic by **topic** on the one broker and by **key prefix** in the one store. D
 that from the start; presenting it as a limitation to work around produces a design that
 cannot be built. Read `diagrid_get_usage` for every other figure rather than quoting one.
 
+**The managed pub/sub also caps its topics, and `diagrid_get_usage` does not show that
+cap.** A subscriber that would create one topic too many fails at startup with
+`topic cannot be created, max topics reached, max allowed N`. Topics left by earlier runs
+count, even with no subscribers, so a user who has tried a quickstart or two can already
+be at the cap. Some frameworks subscribe on their own: Dapr Agents subscribes to the
+managed `agent-pubsub` at startup, one topic per agent, even when the code uses no
+pub/sub. No `diagrid_*` tool lists or deletes topics. When you see that error, tell the
+user the broker is at its topic cap, and ask them to remove the topics they no longer use
+before you start the app again.
+
+### At a cap already
+
+When `diagrid_get_usage` shows `used` equal to `limit` for something you need, stop
+before creating anything and say which cap it is, with both numbers. List what uses it:
+for identities, `diagrid_list_apps`, `diagrid_list_agents` and `diagrid_list_mcp_servers`
+in each project, with each one's status. Then ask the user which way to go: delete
+something they no longer use, or contact Diagrid support for more headroom. Never reuse
+an existing app's or agent's identity for something else to fit under the cap: it runs
+your code under another resource's name, token and access policy. Do it only if the user
+asks for it, after you have said what it means.
+
 Finally, headroom is not the only per-region property. Managed pub/sub, managed KV and
 the Workflows API are **regional capabilities**, and a region that lacks one gives you a
 project where that API simply is not available. `diagrid_get_region` says what the region
